@@ -2,8 +2,19 @@ const CLIENT_ID = 'c5cd3f54f3264c418b632275ae824aa6';
 const CLIENT_SECRET = 'baf0de03970a4248ba1ee40dabc2cc5c';
 const form = document.querySelector('form');
 const input = document.querySelector('input');
+const heading = document.querySelector('.heading');
+const favsButton = document.querySelector('.favourites');
 let currentlyPlayingIndex = -1;
 let audio = new Audio();
+
+heading.addEventListener('click', () => {
+	const songContainer = document.querySelector('.song-container');
+	if (songContainer) {
+		songContainer.remove();
+	}
+	favsButton.style.display = 'block';
+	main();
+});
 
 form.addEventListener('submit', e => {
 	e.preventDefault();
@@ -13,7 +24,16 @@ form.addEventListener('submit', e => {
 	if (songContainer) {
 		songContainer.remove();
 	}
+	favsButton.style.display = 'block';
 	main(query);
+});
+
+favsButton.addEventListener('click', () => {
+	const songContainer = document.querySelector('.song-container');
+	if (songContainer) {
+		songContainer.remove();
+	}
+	displayFavourits();
 });
 
 async function main(query = 'Eminem') {
@@ -92,15 +112,42 @@ function createSongElements(songs) {
 			playTrack(songs.indexOf(song));
 		});
 
+		const heartDiv = createHeartButton(song);
+		heartDiv.addEventListener('click', () => {
+			heartDiv.classList.toggle('is-active');
+			toggleLocalStorage(song);
+		});
+
 		songDiv.appendChild(img);
 		songDiv.appendChild(title);
 		songDiv.appendChild(artist);
 		songDiv.appendChild(audio);
+		songDiv.appendChild(heartDiv);
 
 		songContainer.appendChild(songDiv);
 	});
 
 	document.body.appendChild(songContainer);
+}
+
+function createHeartButton(song) {
+	const outerDiv = document.createElement('div');
+	const innerDiv = document.createElement('div');
+
+	outerDiv.classList.add('placement');
+	innerDiv.classList.add('heart');
+
+	innerDiv.className = JSON.parse(localStorage.getItem('songs'))?.some(s => s.uri === song.uri)
+		? 'heart is-active'
+		: 'heart';
+
+	innerDiv.addEventListener('click', function () {
+		this.classList.toggle('is-active');
+	});
+
+	outerDiv.appendChild(innerDiv);
+
+	return outerDiv;
 }
 
 function playTrack(index) {
@@ -131,6 +178,25 @@ function updateCurrentlyPlaying() {
 		const currentlyPlayingElement = songElements[currentlyPlayingIndex];
 		currentlyPlayingElement.classList.add('currently-playing');
 	}
+}
+
+function toggleLocalStorage(song) {
+	let songs = JSON.parse(localStorage.getItem('songs')) ?? [];
+	if (songs.some(s => s.uri === song.uri)) {
+		console.log("it's already in the array");
+		songs = songs.filter(s => s.uri !== song.uri);
+	} else {
+		console.log("it's not in the array");
+		songs.push(song);
+	}
+
+	localStorage.setItem('songs', JSON.stringify(songs));
+}
+
+function displayFavourits() {
+	const songs = JSON.parse(localStorage.getItem('songs')) ?? [];
+	favsButton.style.display = 'none';
+	createSongElements(songs);
 }
 
 main();
