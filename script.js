@@ -112,42 +112,32 @@ function createSongElements(songs) {
 			playTrack(songs.indexOf(song));
 		});
 
-		const heartDiv = createHeartButton(song);
-		heartDiv.addEventListener('click', () => {
-			heartDiv.classList.toggle('is-active');
+		const likeDiv = document.createElement('div');
+		likeDiv.className = JSON.parse(localStorage.getItem('songs'))?.some(s => s.uri === song.uri)
+			? 'like liked is-liked'
+			: 'like';
+
+		likeDiv.addEventListener('click', () => {
+			likeDiv.classList.remove('liked');
+			likeDiv.classList.toggle('is-liked');
 			toggleLocalStorage(song);
 		});
 
+		const flexDiv = document.createElement('div');
+		flexDiv.style.display = 'flex';
+		flexDiv.style.justifyContent = 'space-between';
+		flexDiv.style.alignItems = 'center';
+		flexDiv.appendChild(artist);
+		flexDiv.appendChild(likeDiv);
+
 		songDiv.appendChild(img);
 		songDiv.appendChild(title);
-		songDiv.appendChild(artist);
+		songDiv.appendChild(flexDiv);
 		songDiv.appendChild(audio);
-		songDiv.appendChild(heartDiv);
-
 		songContainer.appendChild(songDiv);
 	});
 
 	document.body.appendChild(songContainer);
-}
-
-function createHeartButton(song) {
-	const outerDiv = document.createElement('div');
-	const innerDiv = document.createElement('div');
-
-	outerDiv.classList.add('placement');
-	innerDiv.classList.add('heart');
-
-	innerDiv.className = JSON.parse(localStorage.getItem('songs'))?.some(s => s.uri === song.uri)
-		? 'heart is-active'
-		: 'heart';
-
-	innerDiv.addEventListener('click', function () {
-		this.classList.toggle('is-active');
-	});
-
-	outerDiv.appendChild(innerDiv);
-
-	return outerDiv;
 }
 
 function playTrack(index) {
@@ -183,10 +173,8 @@ function updateCurrentlyPlaying() {
 function toggleLocalStorage(song) {
 	let songs = JSON.parse(localStorage.getItem('songs')) ?? [];
 	if (songs.some(s => s.uri === song.uri)) {
-		console.log("it's already in the array");
 		songs = songs.filter(s => s.uri !== song.uri);
 	} else {
-		console.log("it's not in the array");
 		songs.push(song);
 	}
 
